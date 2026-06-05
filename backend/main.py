@@ -141,6 +141,14 @@ import random
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 app = FastAPI()
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://city-p.netlify.app/"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # A list of global cities to cycle through for mock streaming
 MOCK_CITIES = [
