@@ -5,7 +5,7 @@ export default function useCityPulse(url) {
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        const ws = new WebSocket(url);
+        const ws = new WebSocket(wss://city-pulse-telemetry-production.up.railway.app/ws);
 
         ws.onopen = () => setConnected(true);
         ws.onclose = () => setConnected(false);
