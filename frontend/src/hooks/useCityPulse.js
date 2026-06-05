@@ -5,6 +5,7 @@ export default function useCityPulse(url) {
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
+        // This opens the clean string passed from SentimentMap
         const ws = new WebSocket(url);
 
         ws.onopen = () => setConnected(true);
@@ -12,8 +13,6 @@ export default function useCityPulse(url) {
         
         ws.onmessage = (event) => {
             const rawData = JSON.parse(event.data);
-            
-            // Handle both streaming events and the baseline snapshot packet
             if (rawData.type === 'event') {
                 setPulses((prev) => [rawData.data, ...prev.slice(0, 49)]);
             } else if (rawData.type === 'snapshot') {
