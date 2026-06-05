@@ -4,31 +4,37 @@ import useCityPulse from '../hooks/useCityPulse';
 import 'leaflet/dist/leaflet.css';
 
 export default function SentimentMap() {
-    const ws = new WebSocket(`wss://city-pulse-telemetry-production.up.railway.app/ws`);
+    // INITIALIZE THE HOOK TO EXTRACT THE LIVE STATE VARIABLES
+    const { pulses, isConnected } = useCityPulse('ws://localhost:8080/ws');
 
     const getColor = (score) => {
-        if (score > 0.1) return '#22c55e'; // Bright Green
-        if (score < -0.1) return '#ef4444'; // Bright Red
-        return '#eab308'; // Neutral Yellow
-    };
+    // Force the input into a floating-point number so comparison math works
+    const numericScore = parseFloat(score);
+
+    if (numericScore > 0.1) return '#22c55e';  // Bright Green
+    if (numericScore < -0.1) return '#ef4444'; // Bright Red
+    return '#eab308';                          // Neutral Yellow
+};
 
     return (
-        <div style={{ display: 'flex', height: '100vh', fontFamily: 'sans-serif', backgroundColor: '#111827', color: '#f3f4f6' }}>
+        <div style={{ display: 'flex', height: '100vh', fontFamily: 'sans-serif', backgroundColor: '#111827', color: '#fff' }}>
             {/* Sidebar Feed */}
-            <div style={{ width: '30%', padding: '20px', overflowY: 'auto', borderRight: '1px solid #374151' }}>
-                <h2 style={{ margin: 0 }}>CityPulse Dashboard</h2>
-                <p style={{ fontSize: '14px', color: connected ? '#22c55e' : '#ef4444' }}>
-                    ● {connected ? 'Live telemetry pipeline active' : 'Pipeline disconnected'}
+            <div style={{ width: '30%', padding: '20px', overflowY: 'auto', borderRight: '1px solid #374151', backgroundColor: '#1f2937' }}>
+                <h2>CityPulse</h2>
+                <p style={{ fontSize: '14px', color: pulses.length > 0 ? '#22c55e' : '#ef4444' }}>
+                    {pulses.length > 0 ? '● Live telemetry pipeline active' : '● Pipeline disconnected'}
                 </p>
+                
                 <hr style={{ borderColor: '#374151' }} />
                 <h3>Live Feed Streams</h3>
                 <div>
+                    
                     {pulses.map((p, idx) => (
-                        <div key={idx} style={{ padding: '10px', marginBottom: '10px', backgroundColor: '#1f2937', borderRadius: '6px', borderLeft: `5px solid ${getColor(p.sentiment_score || p.sentiment)}` }}>
-                            <strong style={{ color: '#9ca3af', fontSize: '12px' }}>{p.city ? p.city.toUpperCase() : 'UNKNOWN'} | {p.source || 'Stream'}</strong>
-                            <p style={{ margin: '5px 0', fontSize: '14px' }}>"{p.text || p.title}"</p>
-                            <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Score: {(p.sentiment_score || p.sentiment || 0).toFixed(2)}</span>
-                        </div>
+                      <div key={idx} style={{ padding: '10px', marginBottom: '10px', backgroundColor: getColor(p.sentiment_score) + '22', borderRadius: '4px', borderLeft: `4px solid ${getColor(p.sentiment_score)}` }}>
+                      <strong style={{ color: '#9ca3af', fontSize: '12px' }}>{p.city || 'Unknown City'}</strong>
+                      <p style={{ margin: '5px 0', fontSize: '14px' }}>{p.text || p.title}</p>
+                      <span style={{ fontSize: '12px', fontWeight: 'bold' }}>Score: {p.sentiment_score}</span>
+                    </div>
                     ))}
                 </div>
             </div>
@@ -38,32 +44,31 @@ export default function SentimentMap() {
                 <MapContainer center={[22.5937, 78.9629]} zoom={3} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; CARTO'
+                        attribution="&copy; CARTO"
                     />
                     {pulses.map((p, idx) => {
-                        // Generate a completely unique tracking key using city name and its specific text length
-                        const uniqueKey = `${p.city}-${idx}-${(p.text || p.title || '').length}`;
-                        const currentOpacity = idx === 0 ? 1.0 : 0.4; // Make the newest dot shine brightest, fade out older ones!
-                        const currentRadius = idx === 0 ? 16 : 10;   // Make the newest data point pulse larger!
-
-                        return (
-                            <CircleMarker
-                                key={uniqueKey}
-                                center={[p.lat, p.lon || p.lng]}
-                                radius={currentRadius}
-                                fillColor={getColor(p.sentiment_score || p.sentiment)}
-                                color="#ffffff"
-                                weight={idx === 0 ? 2 : 0.5}
-                                fillOpacity={currentOpacity}
-                            >
-                                <Popup>
-                                    <strong>{p.city.toUpperCase()}</strong><br/>
-                                    Sentiment: {(p.sentiment_score || p.sentiment || 0).toFixed(2)}<br/>
-                                    <em>"{p.text || p.title}"</em>
-                                </Popup>
-                            </CircleMarker>
-                        );
-                    })}
+    const markerColor = getColor(p.sentiment_score);
+    
+    return (
+        <CircleMarker
+            key={`${idx}-${p.sentiment_score}`} // Forces Leaflet to re-render the color when data changes
+            center={[p.lat, p.lon]}
+            radius={8} // Fixed clean size so it doesn't look ugly and massive
+            pathOptions={{
+                fillColor: markerColor,
+                color: markerColor,
+                weight: 1,
+                fillOpacity: 0.6 // Vibrant fill color
+            }}
+        >
+            <Popup>
+                <strong>{p.city}</strong><br />
+                {p.text}<br />
+                <span>Sentiment: {p.sentiment_score}</span>
+            </Popup>
+        </CircleMarker>
+    );
+})}
                 </MapContainer>
             </div>
         </div>

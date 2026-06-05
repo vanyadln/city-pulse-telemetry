@@ -2,7 +2,7 @@
   "name": "citypulse-frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://github.com/vanyadln/city-pulse-telemetry",
+  "_homepage": "https://github.com/vanyadln/city-pulse-telemetry",
   "dependencies": {
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
