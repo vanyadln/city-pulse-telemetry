@@ -182,5 +182,5 @@ async def websocket_endpoint(websocket: WebSocket):
 
 if __name__ == "__main__":
     # This forces the app to listen to the exact port Railway provides at runtime
-    port = int(os.environ.get("PORT", 8000))
+    port = int(os.environ.get("PORT", 8080))
     uvicorn.run("main:app", host="0.0.0.0", port=port)
