@@ -4,7 +4,7 @@ import useCityPulse from '../hooks/useCityPulse';
 import 'leaflet/dist/leaflet.css';
 
 export default function SentimentMap() {
-    const { pulses, connected } = useCityPulse('wss://city-pulse-telemetry-production.up.railway.app/ws');
+    const { pulses, connected } = useCityPulse('wss://https://city-pulse-telemetry-production.up.railway.app/ws');
 
     const getColor = (score) => {
         if (score > 0.1) return '#22c55e'; // Bright Green
